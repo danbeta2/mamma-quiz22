@@ -21,8 +21,8 @@ export type Answer = {
 };
 
 // Sistema di domande specifiche per giochi e TCG
-function generateSmartQuestion(answers: any[]): { question: string; options: string[] } {
-  const answeredTopics = new Set(answers.map((a: any) => {
+function generateSmartQuestion(answers: Answer[]): { question: string; options: string[] } {
+  const answeredTopics = new Set(answers.map((a: Answer) => {
     const q = a.question.toLowerCase();
     if (q.includes("età") || q.includes("bambino")) return "age";
     if (q.includes("budget") || q.includes("prezzo") || q.includes("spendere")) return "budget";
@@ -34,7 +34,7 @@ function generateSmartQuestion(answers: any[]): { question: string; options: str
   }));
 
   // Evita di ripetere domande già fatte
-  const askedQuestions = answers.map(a => a.question.toLowerCase());
+  const askedQuestions = answers.map((a: Answer) => a.question.toLowerCase());
   
   // Prima domanda: età (solo se non già chiesta)
   if (!answeredTopics.has("age") && !askedQuestions.some(q => q.includes("età") || q.includes("bambino"))) {
