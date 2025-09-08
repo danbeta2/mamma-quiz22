@@ -179,7 +179,7 @@ async function buildIntentFromDynamicAnswers(answers: Answer[]): Promise<LLMInte
 Sei un esperto analista di prodotti per un e-commerce specializzato in giochi, TCG e giocattoli. Analizza le risposte del questionario e genera un intent di ricerca ottimizzato per trovare i prodotti perfetti.
 
 RISPOSTE UTENTE ANALIZZATE:
-${answers.map(a => `Q: "${a.question}"\nA: "${a.answer}"`).join('\n\n')}
+${answers.map((a: Answer) => `Q: "${a.question}"\nA: "${a.answer}"`).join('\n\n')}
 
 DATABASE PRODOTTI DISPONIBILI:
 - Carte collezionabili: Pokémon (starter deck, booster, singole), Yu-Gi-Oh! (structure deck, booster), Magic (commander, standard, draft), Dragon Ball Super, One Piece
