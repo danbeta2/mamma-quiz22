@@ -26,79 +26,118 @@ function formatAnswers(answers: Answer[]): string {
   return answers.map((a: Answer) => `Q: "${a.question}"\nA: "${a.answer}"`).join('\n\n');
 }
 
-// Sistema di domande specifiche per giochi e TCG
+// Sistema di domande specifiche per giochi e TCG con controllo rigoroso dei duplicati
 function generateSmartQuestion(answers: Answer[]): { question: string; options: string[] } {
+  // Traccia esattamente le domande già fatte per evitare duplicati
+  const askedQuestions = answers.map((a: Answer) => a.question.toLowerCase().trim());
+  
+  // Funzione helper per verificare se una domanda simile è già stata fatta
+  function isQuestionAlreadyAsked(keywords: string[]): boolean {
+    return askedQuestions.some(q => keywords.some(keyword => q.includes(keyword)));
+  }
+
+  // Analizza le risposte per capire i topic coperti
   const answeredTopics = new Set(answers.map((a: Answer) => {
     const q = a.question.toLowerCase();
-    if (q.includes("età") || q.includes("bambino")) return "age";
-    if (q.includes("budget") || q.includes("prezzo") || q.includes("spendere")) return "budget";
-    if (q.includes("tipo") || q.includes("categoria") || q.includes("gioco") || q.includes("carte")) return "category";
-    if (q.includes("marca") || q.includes("brand")) return "brand";
-    if (q.includes("livello") || q.includes("difficoltà") || q.includes("esperienza")) return "level";
-    if (q.includes("competitivo") || q.includes("stile")) return "style";
+    const ans = a.answer.toLowerCase();
+    
+    if (q.includes("età") || q.includes("bambino") || q.includes("anni")) return "age";
+    if (q.includes("budget") || q.includes("prezzo") || q.includes("spendere") || q.includes("costa")) return "budget";
+    if (q.includes("tipo") || q.includes("categoria") || q.includes("gioco") || q.includes("carte") || q.includes("prodotto")) return "category";
+    if (q.includes("marca") || q.includes("brand") || q.includes("preferisci") || ans.includes("pokémon") || ans.includes("yu-gi-oh")) return "brand";
+    if (q.includes("livello") || q.includes("difficoltà") || q.includes("esperienza") || q.includes("principiante")) return "level";
+    if (q.includes("fratelli") || q.includes("sorelle") || q.includes("famiglia") || q.includes("bambini")) return "family";
+    if (q.includes("occasione") || q.includes("regalo") || q.includes("quando")) return "occasion";
+    if (q.includes("competitivo") || q.includes("stile") || q.includes("modalità")) return "style";
     return "other";
   }));
 
-  // Evita di ripetere domande già fatte
-  const askedQuestions = answers.map((a: Answer) => a.question.toLowerCase());
-  
-  // Prima domanda: età (solo se non già chiesta)
-  if (!answeredTopics.has("age") && !askedQuestions.some(q => q.includes("età") || q.includes("bambino"))) {
+  // 1. Prima domanda: età (solo se non già chiesta)
+  if (!isQuestionAlreadyAsked(["età", "anni", "bambino", "vecchio"])) {
     return {
-      question: "Per che età stai cercando?",
+      question: "Per quale fascia d'età stai cercando?",
       options: ["3-6 anni", "7-10 anni", "11-14 anni", "15+ anni", "Adulto"]
     };
   }
 
-  // Seconda: categoria di gioco
-  if (!answeredTopics.has("category")) {
+  // 2. Contesto familiare (domanda specifica richiesta)
+  if (!isQuestionAlreadyAsked(["fratelli", "sorelle", "famiglia", "bambini", "figli"])) {
     return {
-      question: "Che tipo di gioco ti interessa?",
+      question: "Quanti bambini/ragazzi giocheranno insieme?",
+      options: ["Solo uno", "2 bambini (fratelli/sorelle)", "3-4 bambini", "Gruppo più grande", "Tutta la famiglia"]
+    };
+  }
+
+  // 3. Categoria di gioco
+  if (!isQuestionAlreadyAsked(["tipo", "categoria", "gioco", "prodotto", "interessa"])) {
+    return {
+      question: "Che tipo di gioco/prodotto ti interessa?",
       options: ["Carte collezionabili (TCG)", "Giochi da tavolo", "Puzzle e costruzioni", "Action figures", "Giocattoli educativi"]
     };
   }
 
-  // Terza: budget
-  if (!answeredTopics.has("budget")) {
+  // 4. Occasione d'uso
+  if (!isQuestionAlreadyAsked(["occasione", "regalo", "quando", "momento"])) {
     return {
-      question: "Qual è il tuo budget?",
+      question: "Per quale occasione?",
+      options: ["Compleanno", "Regalo di Natale", "Uso quotidiano", "Occasione speciale", "Collezionismo"]
+    };
+  }
+
+  // 5. Budget
+  if (!isQuestionAlreadyAsked(["budget", "prezzo", "spendere", "costa", "euro"])) {
+    return {
+      question: "Qual è il tuo budget indicativo?",
       options: ["Fino a 15€", "15-30€", "30-60€", "60-100€", "Oltre 100€"]
     };
   }
 
-  // Domande specifiche per TCG
-  const categoryAnswer = answers.find(a => a.question.toLowerCase().includes("tipo") || a.question.toLowerCase().includes("gioco"))?.answer || "";
+  // Domande specifiche basate sulla categoria scelta
+  const categoryAnswer = answers.find(a => 
+    a.question.toLowerCase().includes("tipo") || 
+    a.question.toLowerCase().includes("gioco") ||
+    a.question.toLowerCase().includes("prodotto")
+  )?.answer || "";
   
+  // Domande specifiche per TCG
   if (categoryAnswer.includes("Carte") || categoryAnswer.includes("TCG")) {
-    if (!answeredTopics.has("brand")) {
+    if (!isQuestionAlreadyAsked(["marca", "brand", "carte", "preferisci"])) {
       return {
-        question: "Quale marca di carte preferisci?",
-        options: ["Pokémon", "Yu-Gi-Oh!", "Magic: The Gathering", "Dragon Ball Super", "Non ho preferenze"]
+        question: "Quale marca di carte collezionabili preferisci?",
+        options: ["Pokémon", "Yu-Gi-Oh!", "Magic: The Gathering", "Dragon Ball Super", "One Piece", "Non ho preferenze"]
       };
     }
     
-    if (!answeredTopics.has("level")) {
+    if (!isQuestionAlreadyAsked(["livello", "esperienza", "principiante", "esperto"])) {
       return {
-        question: "Qual è il tuo livello di esperienza?",
-        options: ["Principiante", "Intermedio", "Esperto", "Competitivo"]
+        question: "Qual è il livello di esperienza con i TCG?",
+        options: ["Principiante (prime carte)", "Intermedio (conosco le regole)", "Esperto (gioco regolarmente)", "Competitivo (tornei)"]
       };
     }
   }
 
   // Domande per giochi da tavolo
   if (categoryAnswer.includes("tavolo")) {
-    if (!answeredTopics.has("style")) {
+    if (!isQuestionAlreadyAsked(["stile", "modalità", "preferisci", "tipo"])) {
       return {
-        question: "Che stile di gioco preferisci?",
-        options: ["Strategico", "Cooperativo", "Party game", "Famiglia", "Avventura"]
+        question: "Che stile di gioco da tavolo preferisci?",
+        options: ["Strategico", "Cooperativo", "Party game", "Famiglia", "Avventura/Tematico"]
       };
     }
   }
 
-  // Domanda finale
+  // Domanda finale di priorità
+  if (!isQuestionAlreadyAsked(["importante", "priorità", "preferenza", "valore"])) {
+    return {
+      question: "Cosa è più importante per te?",
+      options: ["Qualità premium", "Miglior prezzo", "Novità/ultime uscite", "Classici intramontabili", "Facilità di apprendimento"]
+    };
+  }
+
+  // Fallback se tutte le domande sono state fatte
   return {
-    question: "Cosa è più importante per te?",
-    options: ["Qualità premium", "Miglior prezzo", "Novità/ultime uscite", "Classici intramontabili", "Facilità di apprendimento"]
+    question: "C'è qualcos'altro di specifico che stai cercando?",
+    options: ["Edizione limitata", "Set per principianti", "Espansioni/accessori", "Regalo sorpresa", "Consiglio dell'esperto"]
   };
 }
 
@@ -142,30 +181,38 @@ export async function POST(req: Request) {
         "- 11-14 anni: TCG avanzati, strategici, collezioni\n" +
         "- 15+ anni: competitivi, collezionismo serio, giochi complessi\n\n" +
         "REGOLE FONDAMENTALI:\n" +
-        "1. ANALIZZA le risposte precedenti per evitare duplicati\n" +
-        "2. PROGREDISCI logicamente: età → categoria → marca/tipo → budget → preferenze specifiche\n" +
-        "3. Se hai 4-6 risposte complete, imposta \"isComplete\": true\n" +
-        "4. Fai domande SPECIFICHE e ACTIONABLE per la ricerca prodotti\n" +
-        "5. Opzioni chiare e distinte (3-5 massimo)\n" +
-        "6. Usa terminologia corretta del settore (starter deck, booster pack, set base, ecc.)\n\n" +
-        "ESEMPI DI DOMANDE PROGRESSIVE OTTIME:\n" +
-        "- Prima: \"Per quale fascia d'età stai cercando?\"\n" +
-        "- Seconda: \"Che tipo di prodotto ti interessa di più?\"\n" +
-        "- Terza: \"Quale marca o serie preferisci?\" (se TCG)\n" +
-        "- Quarta: \"Qual è il tuo budget indicativo?\"\n" +
-        "- Quinta: \"Che livello di difficoltà/esperienza?\"\n\n" +
-        "ESEMPI DI OPZIONI SPECIFICHE:\n" +
-        "- Budget TCG: \"Starter Deck (15-25€)\", \"Booster Box (80-120€)\", \"Singole carte (5-50€)\"\n" +
-        "- Livello: \"Principiante (prime partite)\", \"Intermedio (conosco le regole)\", \"Esperto (gioco competitivo)\"\n" +
-        "- Pokémon: \"Set Base recenti\", \"Set speciali/premium\", \"Carte vintage/rare\"\n\n" +
+        "1. ANALIZZA ATTENTAMENTE le risposte precedenti per evitare domande duplicate o simili\n" +
+        "2. NON ripetere mai domande già fatte, anche con parole diverse\n" +
+        "3. PROGREDISCI logicamente: età → contesto familiare → categoria → occasione → budget → preferenze specifiche\n" +
+        "4. Se hai 5-6 risposte complete, imposta \"isComplete\": true\n" +
+        "5. Fai domande SPECIFICHE e ACTIONABLE per la ricerca prodotti\n" +
+        "6. Includi domande sul contesto familiare (fratelli, sorelle, numero bambini)\n" +
+        "7. Opzioni chiare e distinte (4-6 massimo)\n" +
+        "8. Usa terminologia corretta del settore\n\n" +
+        "SEQUENZA DOMANDE PRIORITARIE:\n" +
+        "1. \"Per quale fascia d'età stai cercando?\" (se non già chiesta)\n" +
+        "2. \"Quanti bambini/ragazzi giocheranno insieme?\" (contesto familiare)\n" +
+        "3. \"Che tipo di prodotto ti interessa?\" (categoria)\n" +
+        "4. \"Per quale occasione?\" (compleanno, regalo, uso quotidiano)\n" +
+        "5. \"Qual è il tuo budget indicativo?\" (range di prezzo)\n" +
+        "6. Domande specifiche per categoria (marca TCG, stile gioco, livello esperienza)\n\n" +
+        "ESEMPI DI DOMANDE SPECIFICHE RICHIESTE:\n" +
+        "- Contesto familiare: \"Quanti bambini giocheranno insieme?\", \"Ha fratelli o sorelle?\"\n" +
+        "- Occasione: \"È per un compleanno o uso quotidiano?\"\n" +
+        "- TCG specifico: \"Quale marca di carte preferisci?\", \"Che livello di esperienza?\"\n" +
+        "- Giochi tavolo: \"Preferisci giochi strategici o cooperativi?\"\n\n" +
+        "ESEMPI DI OPZIONI DETTAGLIATE:\n" +
+        "- Contesto: \"Solo uno\", \"2 bambini (fratelli/sorelle)\", \"3-4 bambini\", \"Gruppo più grande\"\n" +
+        "- Budget TCG: \"Starter Deck (15-25€)\", \"Booster Box (80-120€)\", \"Singole carte premium (50-200€)\"\n" +
+        "- Livello: \"Principiante (prime carte)\", \"Intermedio (conosco le regole)\", \"Esperto (gioco competitivo)\"\n\n" +
         "FORMATO RISPOSTA RICHIESTO (JSON valido):\n" +
         "{\n" +
         "  \"question\": \"Domanda specifica e professionale\",\n" +
-        "  \"options\": [\"Opzione 1 dettagliata\", \"Opzione 2 dettagliata\", \"Opzione 3 dettagliata\"],\n" +
+        "  \"options\": [\"Opzione 1 dettagliata\", \"Opzione 2 dettagliata\", \"Opzione 3 dettagliata\", \"Opzione 4 dettagliata\"],\n" +
         "  \"isComplete\": false,\n" +
         "  \"rationale\": \"Solo se isComplete=true, spiega perché hai abbastanza info\"\n" +
         "}\n\n" +
-        "IMPORTANTE: Restituisci SOLO il JSON, nessun altro testo.";
+        "IMPORTANTE: Restituisci SOLO il JSON, nessun altro testo. NON ripetere mai domande già fatte.";
 
       const res = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",

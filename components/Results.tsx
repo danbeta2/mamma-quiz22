@@ -11,7 +11,7 @@ export type Rec = {
   reasons: string[];
 };
 
-export default function Results({ rationale, items }: { rationale?: string; items: Rec[] }) {
+export default function Results({ rationale, items, onRestart }: { rationale?: string; items: Rec[]; onRestart?: () => void }) {
   if (!items?.length) {
     return (
       <div className="empty-state">
@@ -47,6 +47,17 @@ export default function Results({ rationale, items }: { rationale?: string; item
         ))}
       </div>
       <p className="disclaimer">Suggerimenti generati con AI; verifica sempre disponibilità e caratteristiche prima dell'acquisto.</p>
+      
+      {onRestart && (
+        <div style={{textAlign: 'center', marginTop: '2rem'}}>
+          <button 
+            onClick={onRestart}
+            className="btn-restart"
+          >
+            🔄 Rifai Quiz
+          </button>
+        </div>
+      )}
     </div>
   );
 }

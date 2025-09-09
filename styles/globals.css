@@ -201,6 +201,26 @@ body {
   margin-top: 1.5rem;
 }
 
+.btn-restart {
+  background: #374151;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-restart:hover {
+  background: #1f2937;
+}
+
+.btn-restart:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
 .empty-state {
   text-align: center;
   background: white;

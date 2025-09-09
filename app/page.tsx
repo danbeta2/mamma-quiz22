@@ -11,6 +11,13 @@ export default function HomePage() {
   const [items, setItems] = useState<Rec[]>([]);
   const [done, setDone] = useState(false);
 
+  function restartQuiz() {
+    setDone(false);
+    setLoading(false);
+    setRationale(undefined);
+    setItems([]);
+  }
+
   async function onComplete(answers: Answer[]) {
     try {
       window.gtag?.("event", "quiz_complete", { screen_name: "quiz" });
@@ -49,7 +56,7 @@ export default function HomePage() {
 
         {!loading && done && (
           <div className="mt-8">
-            <Results rationale={rationale} items={items} />
+            <Results rationale={rationale} items={items} onRestart={restartQuiz} />
           </div>
         )}
       </section>
