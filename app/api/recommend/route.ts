@@ -23,6 +23,11 @@ export type LLMIntent = {
   rationale: string;
 };
 
+// Helper function per formattare le risposte
+function formatAnswers(answers: Answer[]): string {
+  return answers.map((a: Answer) => `Q: "${a.question}"\nA: "${a.answer}"`).join('\n\n');
+}
+
 // Supporta sia il formato vecchio che quello nuovo
 function isValidAnswers(a: any): boolean {
   if (!a) return false;
@@ -179,7 +184,7 @@ async function buildIntentFromDynamicAnswers(answers: Answer[]): Promise<LLMInte
 Sei un esperto analista di prodotti per un e-commerce specializzato in giochi, TCG e giocattoli. Analizza le risposte del questionario e genera un intent di ricerca ottimizzato per trovare i prodotti perfetti.
 
 RISPOSTE UTENTE ANALIZZATE:
-${answers.map((a: Answer) => `Q: "${a.question}"\nA: "${a.answer}"`).join('\n\n')}
+${formatAnswers(answers)}
 
 DATABASE PRODOTTI DISPONIBILI:
 - Carte collezionabili: Pokémon (starter deck, booster, singole), Yu-Gi-Oh! (structure deck, booster), Magic (commander, standard, draft), Dragon Ball Super, One Piece

@@ -20,6 +20,11 @@ export type Answer = {
   answer: string;
 };
 
+// Helper function per formattare le risposte
+function formatAnswers(answers: Answer[]): string {
+  return answers.map((a: Answer) => `Q: "${a.question}"\nA: "${a.answer}"`).join('\n\n');
+}
+
 // Sistema di domande specifiche per giochi e TCG
 function generateSmartQuestion(answers: Answer[]): { question: string; options: string[] } {
   const answeredTopics = new Set(answers.map((a: Answer) => {
@@ -124,7 +129,7 @@ Sei un esperto consulente di giochi, carte collezionabili (TCG), giocattoli e pr
 CONTESTO NEGOZIO: ${context || "E-commerce specializzato in giochi, TCG, carte collezionabili, giocattoli, puzzle, action figures"}
 
 RISPOSTE PRECEDENTI DELL'UTENTE:
-${answers.map((a: Answer) => `Q: "${a.question}"\nA: "${a.answer}"`).join('\n\n')}
+${formatAnswers(answers)}
 
 CATEGORIE PRODOTTI DISPONIBILI:
 - Carte collezionabili: Pokémon, Yu-Gi-Oh!, Magic: The Gathering, Dragon Ball Super, One Piece
