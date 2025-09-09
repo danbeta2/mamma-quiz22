@@ -123,57 +123,48 @@ export async function POST(req: Request) {
     try {
       if (!OPENAI_API_KEY) throw new Error("No OpenAI key");
 
-      const prompt = `
-Sei un esperto consulente di giochi, carte collezionabili (TCG), giocattoli e prodotti per bambini/ragazzi. Il tuo obiettivo è creare un questionario progressivo e intelligente per consigliare i prodotti perfetti.
-
-CONTESTO NEGOZIO: ${context || "E-commerce specializzato in giochi, TCG, carte collezionabili, giocattoli, puzzle, action figures"}
-
-RISPOSTE PRECEDENTI DELL'UTENTE:
-${formatAnswers(answers)}
-
-CATEGORIE PRODOTTI DISPONIBILI:
-- Carte collezionabili: Pokémon, Yu-Gi-Oh!, Magic: The Gathering, Dragon Ball Super, One Piece
-- Giochi da tavolo: strategici, cooperativi, party games, famiglia
-- Puzzle e costruzioni: LEGO, Ravensburger, 3D puzzles
-- Action figures e collectibles: anime, supereroi, gaming
-- Giocattoli educativi: STEM, robotica, esperimenti scientifici
-
-FASCE D'ETÀ TARGET:
-- 3-6 anni: giochi semplici, educativi, sicuri
-- 7-10 anni: primi TCG, costruzioni medie, puzzle
-- 11-14 anni: TCG avanzati, strategici, collezioni
-- 15+ anni: competitivi, collezionismo serio, giochi complessi
-
-REGOLE FONDAMENTALI:
-1. ANALIZZA le risposte precedenti per evitare duplicati
-2. PROGREDISCI logicamente: età → categoria → marca/tipo → budget → preferenze specifiche
-3. Se hai 4-6 risposte complete, imposta "isComplete": true
-4. Fai domande SPECIFICHE e ACTIONABLE per la ricerca prodotti
-5. Opzioni chiare e distinte (3-5 massimo)
-6. Usa terminologia corretta del settore (starter deck, booster pack, set base, ecc.)
-
-ESEMPI DI DOMANDE PROGRESSIVE OTTIME:
-- Prima: "Per quale fascia d'età stai cercando?"
-- Seconda: "Che tipo di prodotto ti interessa di più?"
-- Terza: "Quale marca o serie preferisci?" (se TCG)
-- Quarta: "Qual è il tuo budget indicativo?"
-- Quinta: "Che livello di difficoltà/esperienza?"
-
-ESEMPI DI OPZIONI SPECIFICHE:
-- Budget TCG: "Starter Deck (15-25€)", "Booster Box (80-120€)", "Singole carte (5-50€)"
-- Livello: "Principiante (prime partite)", "Intermedio (conosco le regole)", "Esperto (gioco competitivo)"
-- Pokémon: "Set Base recenti", "Set speciali/premium", "Carte vintage/rare"
-
-FORMATO RISPOSTA RICHIESTO (JSON valido):
-{
-  "question": "Domanda specifica e professionale",
-  "options": ["Opzione 1 dettagliata", "Opzione 2 dettagliata", "Opzione 3 dettagliata"],
-  "isComplete": false,
-  "rationale": "Solo se isComplete=true, spiega perché hai abbastanza info"
-}
-
-IMPORTANTE: Restituisci SOLO il JSON, nessun altro testo.
-`;
+      const contextText = context || "E-commerce specializzato in giochi, TCG, carte collezionabili, giocattoli, puzzle, action figures";
+      const answersText = formatAnswers(answers);
+      
+      const prompt = "Sei un esperto consulente di giochi, carte collezionabili (TCG), giocattoli e prodotti per bambini/ragazzi. Il tuo obiettivo è creare un questionario progressivo e intelligente per consigliare i prodotti perfetti.\n\n" +
+        "CONTESTO NEGOZIO: " + contextText + "\n\n" +
+        "RISPOSTE PRECEDENTI DELL'UTENTE:\n" + answersText + "\n\n" +
+        "CATEGORIE PRODOTTI DISPONIBILI:\n" +
+        "- Carte collezionabili: Pokémon, Yu-Gi-Oh!, Magic: The Gathering, Dragon Ball Super, One Piece\n" +
+        "- Giochi da tavolo: strategici, cooperativi, party games, famiglia\n" +
+        "- Puzzle e costruzioni: LEGO, Ravensburger, 3D puzzles\n" +
+        "- Action figures e collectibles: anime, supereroi, gaming\n" +
+        "- Giocattoli educativi: STEM, robotica, esperimenti scientifici\n\n" +
+        "FASCE D'ETÀ TARGET:\n" +
+        "- 3-6 anni: giochi semplici, educativi, sicuri\n" +
+        "- 7-10 anni: primi TCG, costruzioni medie, puzzle\n" +
+        "- 11-14 anni: TCG avanzati, strategici, collezioni\n" +
+        "- 15+ anni: competitivi, collezionismo serio, giochi complessi\n\n" +
+        "REGOLE FONDAMENTALI:\n" +
+        "1. ANALIZZA le risposte precedenti per evitare duplicati\n" +
+        "2. PROGREDISCI logicamente: età → categoria → marca/tipo → budget → preferenze specifiche\n" +
+        "3. Se hai 4-6 risposte complete, imposta \"isComplete\": true\n" +
+        "4. Fai domande SPECIFICHE e ACTIONABLE per la ricerca prodotti\n" +
+        "5. Opzioni chiare e distinte (3-5 massimo)\n" +
+        "6. Usa terminologia corretta del settore (starter deck, booster pack, set base, ecc.)\n\n" +
+        "ESEMPI DI DOMANDE PROGRESSIVE OTTIME:\n" +
+        "- Prima: \"Per quale fascia d'età stai cercando?\"\n" +
+        "- Seconda: \"Che tipo di prodotto ti interessa di più?\"\n" +
+        "- Terza: \"Quale marca o serie preferisci?\" (se TCG)\n" +
+        "- Quarta: \"Qual è il tuo budget indicativo?\"\n" +
+        "- Quinta: \"Che livello di difficoltà/esperienza?\"\n\n" +
+        "ESEMPI DI OPZIONI SPECIFICHE:\n" +
+        "- Budget TCG: \"Starter Deck (15-25€)\", \"Booster Box (80-120€)\", \"Singole carte (5-50€)\"\n" +
+        "- Livello: \"Principiante (prime partite)\", \"Intermedio (conosco le regole)\", \"Esperto (gioco competitivo)\"\n" +
+        "- Pokémon: \"Set Base recenti\", \"Set speciali/premium\", \"Carte vintage/rare\"\n\n" +
+        "FORMATO RISPOSTA RICHIESTO (JSON valido):\n" +
+        "{\n" +
+        "  \"question\": \"Domanda specifica e professionale\",\n" +
+        "  \"options\": [\"Opzione 1 dettagliata\", \"Opzione 2 dettagliata\", \"Opzione 3 dettagliata\"],\n" +
+        "  \"isComplete\": false,\n" +
+        "  \"rationale\": \"Solo se isComplete=true, spiega perché hai abbastanza info\"\n" +
+        "}\n\n" +
+        "IMPORTANTE: Restituisci SOLO il JSON, nessun altro testo.";
 
       const res = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",

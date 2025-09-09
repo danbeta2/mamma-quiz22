@@ -180,55 +180,46 @@ async function buildIntentFromDynamicAnswers(answers: Answer[]): Promise<LLMInte
   try {
     if (!OPENAI_API_KEY) throw new Error("No OpenAI key");
 
-    const prompt = `
-Sei un esperto analista di prodotti per un e-commerce specializzato in giochi, TCG e giocattoli. Analizza le risposte del questionario e genera un intent di ricerca ottimizzato per trovare i prodotti perfetti.
-
-RISPOSTE UTENTE ANALIZZATE:
-${formatAnswers(answers)}
-
-DATABASE PRODOTTI DISPONIBILI:
-- Carte collezionabili: Pokémon (starter deck, booster, singole), Yu-Gi-Oh! (structure deck, booster), Magic (commander, standard, draft), Dragon Ball Super, One Piece
-- Giochi da tavolo: Monopoly, Risiko, Catan, Ticket to Ride, Azul, Splendor, party games
-- Puzzle: Ravensburger (500-5000 pz), LEGO (Creator, Technic, Architecture), 3D puzzles
-- Action figures: Funko Pop, Dragon Ball, Naruto, Marvel, DC Comics
-- Giocattoli educativi: LEGO Education, robotica, esperimenti scientifici
-
-FASCE PREZZO TIPICHE:
-- Starter deck TCG: 15-25€
-- Booster pack: 3-5€
-- Booster box: 80-120€
-- Giochi da tavolo: 20-60€
-- LEGO set: 10-300€
-- Action figures: 10-50€
-- Puzzle: 8-40€
-
-COMPITO: Genera termini di ricerca SPECIFICI e EFFICACI per il motore di ricerca del negozio.
-
-REGOLE ANALISI:
-1. ESTRAI informazioni chiave: età, categoria, marca, budget, livello esperienza
-2. TRADUCI in termini di ricerca che matchino i prodotti reali
-3. INCLUDI sinonimi e varianti (es: "tcg" + "carte" + "collezionabili")
-4. CONSIDERA la terminologia del settore (starter, booster, deck, set, etc.)
-5. ADATTA il budget alle fasce reali dei prodotti
-6. SCRIVI rationale personalizzato e convincente
-
-ESEMPI DI SEARCH_TERMS OTTIMALI:
-- TCG Pokémon principiante: ["pokemon", "starter", "deck", "principianti", "carte", "tcg", "base"]
-- Magic competitivo: ["magic", "gathering", "booster", "competitivo", "torneo", "standard", "commander"]
-- LEGO bambini: ["lego", "creator", "bambini", "costruzioni", "mattoncini", "set"]
-- Giochi famiglia: ["giochi", "tavolo", "famiglia", "party", "strategici", "cooperativi"]
-
-FORMATO RISPOSTA RICHIESTO (JSON valido):
-{
-  "search_terms": ["termine1", "termine2", "termine3", "termine4", "termine5", "termine6"],
-  "tags": ["tag1", "tag2", "tag3", "tag4"],
-  "min_price": numero_o_null,
-  "max_price": numero_o_null,
-  "rationale": "Messaggio personalizzato e convincente di 1-2 frasi che spiega perché questi prodotti sono perfetti per l'utente"
-}
-
-IMPORTANTE: Restituisci SOLO il JSON valido, nessun altro testo.
-`;
+    const answersText = formatAnswers(answers);
+    
+    const prompt = "Sei un esperto analista di prodotti per un e-commerce specializzato in giochi, TCG e giocattoli. Analizza le risposte del questionario e genera un intent di ricerca ottimizzato per trovare i prodotti perfetti.\n\n" +
+      "RISPOSTE UTENTE ANALIZZATE:\n" + answersText + "\n\n" +
+      "DATABASE PRODOTTI DISPONIBILI:\n" +
+      "- Carte collezionabili: Pokémon (starter deck, booster, singole), Yu-Gi-Oh! (structure deck, booster), Magic (commander, standard, draft), Dragon Ball Super, One Piece\n" +
+      "- Giochi da tavolo: Monopoly, Risiko, Catan, Ticket to Ride, Azul, Splendor, party games\n" +
+      "- Puzzle: Ravensburger (500-5000 pz), LEGO (Creator, Technic, Architecture), 3D puzzles\n" +
+      "- Action figures: Funko Pop, Dragon Ball, Naruto, Marvel, DC Comics\n" +
+      "- Giocattoli educativi: LEGO Education, robotica, esperimenti scientifici\n\n" +
+      "FASCE PREZZO TIPICHE:\n" +
+      "- Starter deck TCG: 15-25€\n" +
+      "- Booster pack: 3-5€\n" +
+      "- Booster box: 80-120€\n" +
+      "- Giochi da tavolo: 20-60€\n" +
+      "- LEGO set: 10-300€\n" +
+      "- Action figures: 10-50€\n" +
+      "- Puzzle: 8-40€\n\n" +
+      "COMPITO: Genera termini di ricerca SPECIFICI e EFFICACI per il motore di ricerca del negozio.\n\n" +
+      "REGOLE ANALISI:\n" +
+      "1. ESTRAI informazioni chiave: età, categoria, marca, budget, livello esperienza\n" +
+      "2. TRADUCI in termini di ricerca che matchino i prodotti reali\n" +
+      "3. INCLUDI sinonimi e varianti (es: \"tcg\" + \"carte\" + \"collezionabili\")\n" +
+      "4. CONSIDERA la terminologia del settore (starter, booster, deck, set, etc.)\n" +
+      "5. ADATTA il budget alle fasce reali dei prodotti\n" +
+      "6. SCRIVI rationale personalizzato e convincente\n\n" +
+      "ESEMPI DI SEARCH_TERMS OTTIMALI:\n" +
+      "- TCG Pokémon principiante: [\"pokemon\", \"starter\", \"deck\", \"principianti\", \"carte\", \"tcg\", \"base\"]\n" +
+      "- Magic competitivo: [\"magic\", \"gathering\", \"booster\", \"competitivo\", \"torneo\", \"standard\", \"commander\"]\n" +
+      "- LEGO bambini: [\"lego\", \"creator\", \"bambini\", \"costruzioni\", \"mattoncini\", \"set\"]\n" +
+      "- Giochi famiglia: [\"giochi\", \"tavolo\", \"famiglia\", \"party\", \"strategici\", \"cooperativi\"]\n\n" +
+      "FORMATO RISPOSTA RICHIESTO (JSON valido):\n" +
+      "{\n" +
+      "  \"search_terms\": [\"termine1\", \"termine2\", \"termine3\", \"termine4\", \"termine5\", \"termine6\"],\n" +
+      "  \"tags\": [\"tag1\", \"tag2\", \"tag3\", \"tag4\"],\n" +
+      "  \"min_price\": numero_o_null,\n" +
+      "  \"max_price\": numero_o_null,\n" +
+      "  \"rationale\": \"Messaggio personalizzato e convincente di 1-2 frasi che spiega perché questi prodotti sono perfetti per l'utente\"\n" +
+      "}\n\n" +
+      "IMPORTANTE: Restituisci SOLO il JSON valido, nessun altro testo.";
 
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
