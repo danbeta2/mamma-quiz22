@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { buildIntentFromAnswers } from "@/lib/openai";
 import { searchProducts, rankProducts } from "@/lib/woo";
 
+// Force Vercel rebuild - TypeScript fix applied
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 

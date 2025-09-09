@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+// Force Vercel rebuild - TypeScript fix applied
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
