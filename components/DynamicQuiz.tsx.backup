@@ -1,8 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 
-// VERCEL CACHE BUSTER - COMPLETE REBUILD - 2025-01-18 14:10
-// This file has been completely recreated to force Vercel recognition
+// Force Vercel rebuild - TypeScript fix - 2025-01-18 14:00
 
 export type Answer = {
   question: string;
