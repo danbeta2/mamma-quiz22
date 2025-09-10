@@ -112,7 +112,7 @@ export default function DynamicQuiz({ onComplete, key }: { onComplete: (answers:
           Errore: {error}
         </div>
         <div className="nav-buttons">
-          <button className="btn btn-primary" onClick={loadNextQuestion}>
+          <button className="btn btn-primary" onClick={() => loadNextQuestion(answers)}>
             Riprova
           </button>
         </div>
