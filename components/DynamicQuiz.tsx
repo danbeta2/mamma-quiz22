@@ -24,19 +24,24 @@ const Chip = ({ active, children, onClick }: { active: boolean; children: React.
   </button>
 );
 
-export default function DynamicQuiz({ onComplete }: { onComplete: (answers: Answer[]) => void }) {
+export default function DynamicQuiz({ onComplete, key }: { onComplete: (answers: Answer[]) => void; key?: string | number }) {
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState<QuestionData | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
 
-  // Carica la prima domanda
+  // Carica la prima domanda e resetta quando il componente viene rimontato
   useEffect(() => {
-    loadNextQuestion();
-  }, []);
+    // Reset completo dello stato quando il componente viene rimontato
+    setAnswers([]);
+    setCurrentQuestion(null);
+    setSelectedAnswer("");
+    setError("");
+    loadNextQuestion([]);
+  }, [key]);
 
-  async function loadNextQuestion() {
+  async function loadNextQuestion(currentAnswers = answers) {
     try {
       setLoading(true);
       setError("");
@@ -46,7 +51,7 @@ export default function DynamicQuiz({ onComplete }: { onComplete: (answers: Answ
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          answers,
+          answers: currentAnswers,
           context: "Questionario per consigli prodotti per mamme e bambini"
         }),
       });
@@ -58,7 +63,7 @@ export default function DynamicQuiz({ onComplete }: { onComplete: (answers: Answ
 
       // Se il quiz è completo, invia le risposte
       if (data.isComplete) {
-        onComplete(answers);
+        onComplete(currentAnswers);
       }
     } catch (e: any) {
       setError(e?.message || "Errore di rete. Riprova.");
@@ -78,7 +83,7 @@ export default function DynamicQuiz({ onComplete }: { onComplete: (answers: Answ
     setAnswers(newAnswers);
     
     // Carica la prossima domanda
-    setTimeout(() => loadNextQuestion(), 500);
+    setTimeout(() => loadNextQuestion(newAnswers), 500);
   }
 
   function goBack() {
@@ -89,7 +94,7 @@ export default function DynamicQuiz({ onComplete }: { onComplete: (answers: Answ
     setSelectedAnswer("");
     
     // Ricarica la domanda per il nuovo stato
-    setTimeout(() => loadNextQuestion(), 100);
+    setTimeout(() => loadNextQuestion(newAnswers), 100);
   }
 
   if (loading && !currentQuestion) {

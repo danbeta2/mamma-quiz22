@@ -10,12 +10,14 @@ export default function HomePage() {
   const [rationale, setRationale] = useState<string>();
   const [items, setItems] = useState<Rec[]>([]);
   const [done, setDone] = useState(false);
+  const [quizKey, setQuizKey] = useState(0); // Key per forzare il remount del quiz
 
   function restartQuiz() {
     setDone(false);
     setLoading(false);
     setRationale(undefined);
     setItems([]);
+    setQuizKey(prev => prev + 1); // Cambia la key per forzare il remount
   }
 
   async function onComplete(answers: Answer[]) {
@@ -46,7 +48,7 @@ export default function HomePage() {
         <h1 className="text-3xl">Mamma Quiz</h1>
         <p className="text-gray-600 mt-2">Rispondi a poche domande: ti consiglieremo 1–3 prodotti adatti alle tue esigenze.</p>
 
-        {!done && !loading && <div className="mt-8"><DynamicQuiz onComplete={onComplete} /></div>}
+        {!done && !loading && <div className="mt-8"><DynamicQuiz key={quizKey} onComplete={onComplete} /></div>}
 
         {loading && (
           <div className="loading-card">
