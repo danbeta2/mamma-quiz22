@@ -27,7 +27,18 @@ export default function Results({ rationale, items, onRestart }: { rationale?: s
       <div className="results-grid">
         {items.map(p => (
           <div key={p.id} className="product-card">
-            {p.image && <img src={p.image} alt={p.name} className="product-image" />}
+            {p.image && (
+              <img 
+                src={p.image} 
+                alt={p.name} 
+                className="product-image"
+                onError={(e) => {
+                  // Nascondi l'immagine se non si carica
+                  e.currentTarget.style.display = 'none';
+                }}
+                loading="lazy"
+              />
+            )}
             <div className="product-content">
               <h3 className="product-title">{p.name}</h3>
               <p className="product-price">{p.price != null ? `${p.price.toFixed(2)} €` : ""}</p>

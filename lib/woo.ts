@@ -111,8 +111,20 @@ export async function searchProducts({
         per_page: perPage,
         status: "publish",
         orderby: "rand",
+        search: search || undefined,
       },
       name: "random search"
+    },
+    // Strategia 3b: ricerca per prezzo per varietà
+    {
+      params: {
+        per_page: perPage,
+        status: "publish",
+        orderby: "price",
+        order: Math.random() > 0.5 ? "asc" : "desc",
+        search: search || undefined,
+      },
+      name: "price variety search"
     },
     // Strategia 4: ricerca per rating
     {
@@ -194,9 +206,10 @@ export function rankProducts(
 
   // Funzione per aggiungere varietà al punteggio
   function addVariety(baseScore: number, productId: number): number {
-    // Usa l'ID del prodotto per creare una variazione consistente ma diversa
-    const variation = (productId * 7 + Date.now() / 1000000) % 1; // Varia nel tempo
-    return baseScore + (variation * 0.5); // Aggiunge fino a 0.5 punti di variazione
+    // Usa l'ID del prodotto per creare una variazione più forte
+    const timeVariation = Math.sin(Date.now() / 100000 + productId) * 2; // Varia di ±2 punti
+    const randomVariation = (productId * 13 + Date.now() / 50000) % 3; // Varia di 0-3 punti
+    return baseScore + timeVariation + randomVariation;
   }
 
   const rankedProducts = items.map(p => {
@@ -254,11 +267,29 @@ export function rankProducts(
 
     const addToCartUrl = `${PUBLIC_BASE}/?add-to-cart=${p.id}`;
 
+    // Migliora la gestione delle immagini
+    let imageUrl = p.images?.[0]?.src ?? null;
+    
+    // Se l'immagine non è valida, usa un placeholder o rimuovi protocolli problematici
+    if (imageUrl) {
+      // Assicurati che l'URL sia valido
+      try {
+        const url = new URL(imageUrl);
+        // Se è un URL relativo, rendilo assoluto
+        if (!url.protocol) {
+          imageUrl = `https://scimmia.it${imageUrl}`;
+        }
+      } catch (e) {
+        // Se l'URL non è valido, usa null
+        imageUrl = null;
+      }
+    }
+
     return {
       id: p.id,
       name: p.name,
       price,
-      image: p.images?.[0]?.src ?? null,
+      image: imageUrl,
       permalink: p.permalink,
       addToCartUrl,
       score,
@@ -266,12 +297,14 @@ export function rankProducts(
     };
   });
 
-  // Ordina per punteggio ma con un po' di randomizzazione per i prodotti con punteggio simile
+  // Ordina per punteggio ma con randomizzazione più forte per varietà
   return rankedProducts.sort((a, b) => {
     const scoreDiff = b.score - a.score;
-    // Se la differenza di punteggio è piccola (< 0.5), aggiungi un po' di casualità
-    if (Math.abs(scoreDiff) < 0.5) {
-      return Math.random() - 0.5;
+    
+    // Randomizzazione più aggressiva per evitare sempre gli stessi prodotti
+    if (Math.abs(scoreDiff) < 2) { // Soglia più alta per più varietà
+      const randomFactor = (Math.random() - 0.5) * 3; // Fattore random più forte
+      return scoreDiff + randomFactor;
     }
     return scoreDiff;
   });
