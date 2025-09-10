@@ -167,6 +167,7 @@ export async function POST(req: Request) {
       }
 
       console.log("✅ Using OpenAI for question generation");
+      console.log("🔑 API Key present:", OPENAI_API_KEY ? `${OPENAI_API_KEY.substring(0, 10)}...` : "MISSING");
       const contextText = context || "E-commerce specializzato in giochi, TCG, carte collezionabili, giocattoli, puzzle, action figures";
       const answersText = formatAnswers(answers);
       
@@ -215,6 +216,7 @@ export async function POST(req: Request) {
         "}\n\n" +
         "⚠️ VERIFICA FINALE: La domanda che stai per fare è DIVERSA da tutte quelle già fatte sopra? Se no, scegli un altro tema!";
 
+      console.log("🚀 Making OpenAI API call...");
       const res = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -228,16 +230,25 @@ export async function POST(req: Request) {
         }),
       });
 
-      if (!res.ok) throw new Error(`OpenAI error ${res.status}`);
+      console.log("📡 OpenAI response status:", res.status);
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.log("❌ OpenAI error response:", errorText);
+        throw new Error(`OpenAI error ${res.status}: ${errorText}`);
+      }
 
       const data: any = await res.json();
+      console.log("✅ OpenAI response received");
       const text: string = data?.choices?.[0]?.message?.content ?? "";
+      console.log("📝 OpenAI generated text:", text.substring(0, 100) + "...");
 
       const start = text.indexOf("{");
       const end = text.lastIndexOf("}");
       const json = start >= 0 && end > start ? text.slice(start, end + 1) : "{}";
       const parsed = JSON.parse(json);
 
+      console.log("🎯 Using OpenAI generated question");
       return NextResponse.json(parsed as QuestionResponse);
     } catch (openaiError) {
       console.log("OpenAI fallback, using predefined questions:", openaiError);
