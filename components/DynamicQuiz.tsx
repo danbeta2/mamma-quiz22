@@ -180,3 +180,4 @@ export default function DynamicQuiz({ onComplete, key }: { onComplete: (answers:
     </div>
   );
 }
+// Force Vercel sync - 1757506411
