@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 
+// Force Vercel rebuild - TypeScript fix - 2025-01-18 14:00
+
 export type Answer = {
   question: string;
   answer: string;
@@ -41,7 +43,7 @@ export default function DynamicQuiz({ onComplete, key }: { onComplete: (answers:
     loadNextQuestion([]);
   }, [key]);
 
-  async function loadNextQuestion(currentAnswers = answers) {
+  async function loadNextQuestion(currentAnswers: Answer[] = answers) {
     try {
       setLoading(true);
       setError("");
