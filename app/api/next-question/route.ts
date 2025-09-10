@@ -166,53 +166,50 @@ export async function POST(req: Request) {
       const contextText = context || "E-commerce specializzato in giochi, TCG, carte collezionabili, giocattoli, puzzle, action figures";
       const answersText = formatAnswers(answers);
       
-      const prompt = "Sei un esperto consulente di giochi, carte collezionabili (TCG), giocattoli e prodotti per bambini/ragazzi. Il tuo obiettivo è creare un questionario progressivo e intelligente per consigliare i prodotti perfetti.\n\n" +
+      const prompt = "Sei un esperto consulente di giochi, carte collezionabili (TCG), giocattoli e prodotti per bambini/ragazzi.\n\n" +
         "CONTESTO NEGOZIO: " + contextText + "\n\n" +
-        "RISPOSTE PRECEDENTI DELL'UTENTE:\n" + answersText + "\n\n" +
-        "CATEGORIE PRODOTTI DISPONIBILI:\n" +
-        "- Carte collezionabili: Pokémon, Yu-Gi-Oh!, Magic: The Gathering, Dragon Ball Super, One Piece\n" +
+        "CRONOLOGIA COMPLETA DOMANDE GIÀ FATTE:\n" + answersText + "\n\n" +
+        "⚠️ REGOLA CRITICA: ANALIZZA OGNI SINGOLA DOMANDA GIÀ FATTA SOPRA. NON RIPETERE MAI NESSUNA DOMANDA SIMILE, NEMMENO CON PAROLE DIVERSE!\n\n" +
+        "TEMI GIÀ TRATTATI DA EVITARE ASSOLUTAMENTE:\n" +
+        (answers.map((a: Answer) => `- ${a.question}`).join('\n') || "- Nessuna domanda ancora fatta") + "\n\n" +
+        "SEQUENZA LOGICA OBBLIGATORIA (salta se già trattato):\n" +
+        "1. ETÀ: \"Per quale fascia d'età stai cercando?\"\n" +
+        "2. CONTESTO: \"Quanti bambini/ragazzi giocheranno insieme?\"\n" +
+        "3. CATEGORIA: \"Che tipo di prodotto ti interessa?\"\n" +
+        "4. OCCASIONE: \"Per quale occasione?\"\n" +
+        "5. BUDGET: \"Qual è il tuo budget indicativo?\"\n" +
+        "6. SPECIFICHE: domande mirate per categoria scelta\n\n" +
+        "CATEGORIE PRODOTTI:\n" +
+        "- Carte collezionabili: Pokémon, Yu-Gi-Oh!, Magic, Dragon Ball Super, One Piece\n" +
         "- Giochi da tavolo: strategici, cooperativi, party games, famiglia\n" +
         "- Puzzle e costruzioni: LEGO, Ravensburger, 3D puzzles\n" +
-        "- Action figures e collectibles: anime, supereroi, gaming\n" +
-        "- Giocattoli educativi: STEM, robotica, esperimenti scientifici\n\n" +
-        "FASCE D'ETÀ TARGET:\n" +
-        "- 3-6 anni: giochi semplici, educativi, sicuri\n" +
-        "- 7-10 anni: primi TCG, costruzioni medie, puzzle\n" +
-        "- 11-14 anni: TCG avanzati, strategici, collezioni\n" +
-        "- 15+ anni: competitivi, collezionismo serio, giochi complessi\n\n" +
-        "REGOLE FONDAMENTALI:\n" +
-        "1. ANALIZZA ATTENTAMENTE le risposte precedenti per evitare domande duplicate o simili\n" +
-        "2. NON ripetere mai domande già fatte, anche con parole diverse\n" +
-        "3. PROGREDISCI logicamente: età → contesto familiare → categoria → occasione → budget → preferenze specifiche\n" +
-        "4. Se hai 5-6 risposte complete, imposta \"isComplete\": true\n" +
-        "5. Fai domande SPECIFICHE e ACTIONABLE per la ricerca prodotti\n" +
-        "6. Includi domande sul contesto familiare (fratelli, sorelle, numero bambini)\n" +
-        "7. Opzioni chiare e distinte (4-6 massimo)\n" +
-        "8. Usa terminologia corretta del settore\n\n" +
-        "SEQUENZA DOMANDE PRIORITARIE:\n" +
-        "1. \"Per quale fascia d'età stai cercando?\" (se non già chiesta)\n" +
-        "2. \"Quanti bambini/ragazzi giocheranno insieme?\" (contesto familiare)\n" +
-        "3. \"Che tipo di prodotto ti interessa?\" (categoria)\n" +
-        "4. \"Per quale occasione?\" (compleanno, regalo, uso quotidiano)\n" +
-        "5. \"Qual è il tuo budget indicativo?\" (range di prezzo)\n" +
-        "6. Domande specifiche per categoria (marca TCG, stile gioco, livello esperienza)\n\n" +
-        "ESEMPI DI DOMANDE SPECIFICHE RICHIESTE:\n" +
-        "- Contesto familiare: \"Quanti bambini giocheranno insieme?\", \"Ha fratelli o sorelle?\"\n" +
-        "- Occasione: \"È per un compleanno o uso quotidiano?\"\n" +
-        "- TCG specifico: \"Quale marca di carte preferisci?\", \"Che livello di esperienza?\"\n" +
-        "- Giochi tavolo: \"Preferisci giochi strategici o cooperativi?\"\n\n" +
-        "ESEMPI DI OPZIONI DETTAGLIATE:\n" +
-        "- Contesto: \"Solo uno\", \"2 bambini (fratelli/sorelle)\", \"3-4 bambini\", \"Gruppo più grande\"\n" +
-        "- Budget TCG: \"Starter Deck (15-25€)\", \"Booster Box (80-120€)\", \"Singole carte premium (50-200€)\"\n" +
-        "- Livello: \"Principiante (prime carte)\", \"Intermedio (conosco le regole)\", \"Esperto (gioco competitivo)\"\n\n" +
-        "FORMATO RISPOSTA RICHIESTO (JSON valido):\n" +
+        "- Action figures: anime, supereroi, gaming\n" +
+        "- Giocattoli educativi: STEM, robotica, esperimenti\n\n" +
+        "DOMANDE SPECIFICHE PER CATEGORIA (solo se categoria già scelta):\n" +
+        "- TCG: marca preferita, livello esperienza, tipo di prodotto (starter/booster/singole)\n" +
+        "- Giochi tavolo: stile (strategico/cooperativo/party), numero giocatori, durata\n" +
+        "- LEGO: tema preferito, dimensione set, età costruttore\n" +
+        "- Action figures: franchise preferito, dimensione, articolazione\n\n" +
+        "ISTRUZIONI OPERATIVE:\n" +
+        "1. LEGGI ATTENTAMENTE tutte le domande già fatte sopra\n" +
+        "2. IDENTIFICA quale tema NON è ancora stato trattato\n" +
+        "3. FAI la prossima domanda logica nella sequenza\n" +
+        "4. Se hai 5+ risposte complete, imposta isComplete: true\n" +
+        "5. OPZIONI: 4-6 scelte chiare e specifiche\n\n" +
+        "ESEMPI DI PROGRESSIONE CORRETTA:\n" +
+        "- Se non hai età → chiedi età\n" +
+        "- Se hai età ma non contesto → chiedi quanti bambini\n" +
+        "- Se hai età+contesto ma non categoria → chiedi tipo prodotto\n" +
+        "- Se hai categoria TCG ma non marca → chiedi marca carte\n" +
+        "- Se hai tutto → isComplete: true\n\n" +
+        "FORMATO RISPOSTA (JSON puro):\n" +
         "{\n" +
-        "  \"question\": \"Domanda specifica e professionale\",\n" +
-        "  \"options\": [\"Opzione 1 dettagliata\", \"Opzione 2 dettagliata\", \"Opzione 3 dettagliata\", \"Opzione 4 dettagliata\"],\n" +
+        "  \"question\": \"Domanda NON ancora fatta\",\n" +
+        "  \"options\": [\"Opzione 1\", \"Opzione 2\", \"Opzione 3\", \"Opzione 4\"],\n" +
         "  \"isComplete\": false,\n" +
-        "  \"rationale\": \"Solo se isComplete=true, spiega perché hai abbastanza info\"\n" +
+        "  \"rationale\": \"Solo se isComplete=true\"\n" +
         "}\n\n" +
-        "IMPORTANTE: Restituisci SOLO il JSON, nessun altro testo. NON ripetere mai domande già fatte.";
+        "⚠️ VERIFICA FINALE: La domanda che stai per fare è DIVERSA da tutte quelle già fatte sopra? Se no, scegli un altro tema!";
 
       const res = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",

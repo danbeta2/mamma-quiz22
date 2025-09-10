@@ -251,6 +251,79 @@ async function buildIntentFromDynamicAnswers(answers: Answer[]): Promise<LLMInte
   }
 }
 
+// Genera spiegazione dettagliata personalizzata per i prodotti scelti
+async function generateDetailedRationale(answers: Answer[], recommendations: any[], intent: LLMIntent): Promise<string> {
+  try {
+    if (!OPENAI_API_KEY || recommendations.length === 0) {
+      return intent.rationale || "Ho selezionato questi prodotti in base alle tue preferenze.";
+    }
+
+    const answersText = formatAnswers(answers);
+    const productsText = recommendations.map((p, i) => 
+      `${i + 1}. ${p.name} - ${p.price ? p.price.toFixed(2) + '€' : 'Prezzo da verificare'}\n   Motivi: ${p.reasons.join(', ')}`
+    ).join('\n\n');
+
+    const prompt = "Sei un consulente esperto di giochi, TCG e giocattoli. Hai appena selezionato dei prodotti perfetti per un cliente in base alle sue risposte al questionario.\n\n" +
+      "RISPOSTE DEL CLIENTE:\n" + answersText + "\n\n" +
+      "PRODOTTI SELEZIONATI:\n" + productsText + "\n\n" +
+      "COMPITO: Scrivi una spiegazione personalizzata e convincente (2-3 frasi) che spieghi ESATTAMENTE perché hai scelto questi prodotti specifici per questo cliente.\n\n" +
+      "REGOLE:\n" +
+      "1. Menziona elementi specifici dalle risposte del cliente\n" +
+      "2. Collega le caratteristiche dei prodotti alle sue esigenze\n" +
+      "3. Usa un tono professionale ma amichevole\n" +
+      "4. Sii specifico sui benefici di ogni prodotto\n" +
+      "5. Massimo 3 frasi, diretto al punto\n\n" +
+      "ESEMPI DI SPIEGAZIONI OTTIME:\n" +
+      "- \"Considerando che stai cercando per un bambino di 8 anni interessato alle carte Pokémon, ho selezionato uno Starter Deck perfetto per iniziare e un Booster Pack per espandere la collezione. Il tuo budget di 30€ è ideale per questi prodotti che garantiscono ore di divertimento.\"\n" +
+      "- \"Dato che hai indicato interesse per giochi da tavolo strategici per 2-4 giocatori, ho scelto Catan e Ticket to Ride che sono perfetti per la famiglia. Entrambi offrono la giusta complessità per ragazzi di 12+ anni e rientrano nel tuo budget.\"\n\n" +
+      "Scrivi SOLO la spiegazione, nessun altro testo:";
+
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+        max_tokens: 200,
+      }),
+    });
+
+    if (!res.ok) throw new Error(`OpenAI error ${res.status}`);
+
+    const data: any = await res.json();
+    const explanation = data?.choices?.[0]?.message?.content?.trim() ?? "";
+
+    return explanation || intent.rationale || "Ho selezionato questi prodotti in base alle tue preferenze specifiche.";
+  } catch (error) {
+    console.log("Fallback to basic rationale:", error);
+    
+    // Fallback intelligente basato sui prodotti e risposte
+    const userAge = answers.find(a => a.question.toLowerCase().includes('età'))?.answer || '';
+    const userCategory = answers.find(a => a.question.toLowerCase().includes('tipo') || a.question.toLowerCase().includes('categoria'))?.answer || '';
+    const userBudget = answers.find(a => a.question.toLowerCase().includes('budget'))?.answer || '';
+    
+    let explanation = "Ho selezionato questi prodotti perché ";
+    
+    if (userAge) {
+      explanation += `sono perfetti per l'età indicata (${userAge})`;
+    }
+    if (userCategory) {
+      explanation += userAge ? ` e corrispondono alla categoria ${userCategory}` : `corrispondono alla categoria ${userCategory}`;
+    }
+    if (userBudget) {
+      explanation += ` rispettando il tuo budget di ${userBudget}`;
+    }
+    
+    explanation += ". Ogni prodotto è stato scelto per qualità e divertimento garantito.";
+    
+    return explanation;
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
@@ -283,8 +356,11 @@ export async function POST(req: Request) {
 
     const recommendations = ranked.slice(0, 3);
 
+    // 4) Genera spiegazione dettagliata del perché sono stati scelti questi prodotti
+    const detailedRationale = await generateDetailedRationale(Array.isArray(answers) ? answers : [], recommendations, intent);
+
     return NextResponse.json({
-      rationale: intent.rationale,
+      rationale: detailedRationale,
       recommendations,
       meta: {
         total_found: products.length,
