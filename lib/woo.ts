@@ -251,12 +251,18 @@ export function rankProducts(
     // Bonus per diversi tipi di prodotto (ma solo se prezzo ragionevole)
     const nameLower = name.toLowerCase();
     if (price && price < 80) {
+      // Bonus extra per prodotti starter e principianti
+      if (nameLower.includes('starter')) score += 4;
+      if (nameLower.includes('principianti') || nameLower.includes('beginner')) score += 3;
+      if (nameLower.includes('deck') && price < 30) score += 3;
+      if (nameLower.includes('base') || nameLower.includes('basic')) score += 2;
+      
+      // Bonus per marche popolari
       if (nameLower.includes('pokemon') || nameLower.includes('pokémon')) score += 2;
       if (nameLower.includes('magic') || nameLower.includes('yugioh')) score += 1;
       if (nameLower.includes('lego')) score += 2;
       if (nameLower.includes('puzzle')) score += 1;
       if (nameLower.includes('gioco') || nameLower.includes('tavolo')) score += 1;
-      if (nameLower.includes('starter') || nameLower.includes('deck')) score += 2;
     }
     
     // PENALIZZA prodotti chiaramente per collezionisti estremi

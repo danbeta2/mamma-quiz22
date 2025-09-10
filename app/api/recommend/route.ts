@@ -56,7 +56,7 @@ function isValidAnswers(a: any): boolean {
   return false;
 }
 
-// Fallback intelligente per giochi e TCG
+// Fallback intelligente per giochi e TCG con focus su prodotti appropriati
 function buildFallbackIntent(answers: Answer[]): LLMIntent {
   const search_terms: string[] = [];
   const tags: string[] = [];
@@ -69,24 +69,28 @@ function buildFallbackIntent(answers: Answer[]): LLMIntent {
     const answer = a.answer.toLowerCase();
     const question = a.question.toLowerCase();
     
-    // Età - focus su giochi appropriati
+    // Età - focus su prodotti appropriati per fascia
     if (question.includes("età")) {
       if (answer.includes("3-6")) {
-        search_terms.push("giochi", "bambini", "3-6anni", "educativi", "puzzle");
-        tags.push("3-6anni", "educativi");
-        rationale = "Giochi perfetti per bambini di 3-6 anni";
+        search_terms.push("starter", "principianti", "bambini", "semplice", "educativo", "primo");
+        tags.push("3-6anni", "principianti", "starter");
+        max_price = 25; // Prodotti entry-level
+        rationale = "Prodotti starter perfetti per bambini di 3-6 anni";
       } else if (answer.includes("7-10")) {
-        search_terms.push("giochi", "carte", "7-10anni", "strategici", "costruzioni");
-        tags.push("7-10anni", "strategici");
-        rationale = "Giochi ideali per bambini di 7-10 anni";
+        search_terms.push("starter", "deck", "principianti", "pokemon", "carte", "base");
+        tags.push("7-10anni", "starter", "pokemon");
+        max_price = 40; // Starter deck e prodotti base
+        rationale = "Starter deck e prodotti base ideali per bambini di 7-10 anni";
       } else if (answer.includes("11-14")) {
-        search_terms.push("carte", "tcg", "giochi", "tavolo", "strategici");
-        tags.push("11-14anni", "avanzati");
-        rationale = "Giochi perfetti per ragazzi di 11-14 anni";
+        search_terms.push("deck", "starter", "pokemon", "magic", "yugioh", "base");
+        tags.push("11-14anni", "tcg", "deck");
+        max_price = 60; // Prodotti intermedi
+        rationale = "Deck e prodotti TCG per ragazzi di 11-14 anni";
       } else if (answer.includes("15+") || answer.includes("adulto")) {
-        search_terms.push("carte", "tcg", "magic", "pokemon", "strategici", "competitivi");
-        tags.push("adulto", "competitivo");
-        rationale = "Giochi e carte per giocatori esperti";
+        search_terms.push("booster", "deck", "competitivo", "avanzato", "collezione");
+        tags.push("adulto", "competitivo", "avanzato");
+        max_price = 100; // Prodotti avanzati
+        rationale = "Prodotti avanzati per giocatori esperti";
       }
     }
     

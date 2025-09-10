@@ -144,18 +144,30 @@ body {
   object-fit: cover;
 }
 
+.product-image-container {
+  width: 100%;
+  height: 12rem;
+  overflow: hidden;
+}
+
 .product-image-placeholder {
   width: 100%;
   height: 12rem;
-  background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
   padding: 1rem;
-  color: #666;
+  color: #1976d2;
   font-size: 0.875rem;
   font-weight: 500;
+}
+
+.placeholder-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
 }
 
 .product-content {
