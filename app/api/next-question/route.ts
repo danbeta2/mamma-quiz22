@@ -161,8 +161,12 @@ export async function POST(req: Request) {
 
     // Prova prima OpenAI, poi fallback
     try {
-      if (!OPENAI_API_KEY) throw new Error("No OpenAI key");
+      if (!OPENAI_API_KEY) {
+        console.log("⚠️ OPENAI_API_KEY not found, using fallback");
+        throw new Error("No OpenAI key");
+      }
 
+      console.log("✅ Using OpenAI for question generation");
       const contextText = context || "E-commerce specializzato in giochi, TCG, carte collezionabili, giocattoli, puzzle, action figures";
       const answersText = formatAnswers(answers);
       
