@@ -282,8 +282,14 @@ async function generateDetailedRationale(answers: Answer[], recommendations: any
       "ESEMPIO TCG: \"Basandomi sul profilo emerso - bambino di 9 anni con forte inclinazione strategica e desiderio di collezionismo - ho selezionato uno Starter Deck Pokémon che offre meccaniche bilanciate per sviluppare il pensiero tattico, abbinato a Booster Pack per soddisfare l'aspetto collezionistico. Questi prodotti sono ideali perché combinano l'apprendimento di regole complesse (sviluppo cognitivo) con la gratificazione immediata delle carte rare (motivazione intrinseca). Il budget di 35€ è ottimizzato per garantire un'esperienza completa senza sovraccarico, permettendo una progressione naturale verso formati più avanzati.\"\n\n" +
       "ESEMPIO GIOCHI TAVOLO: \"Considerando il profilo di una famiglia con bambini 8-12 anni che cerca esperienze collaborative e educative, ho scelto Ticket to Ride per sviluppare pianificazione strategica e geografia, e Azul per affinare il riconoscimento di pattern e l'estetica. Entrambi offrono meccaniche accessibili ma profonde, perfette per creare momenti di qualità familiare mentre stimolano competenze STEM. La combinazione garantisce varietà di esperienza (geografica vs artistica) e longevità di gioco, rappresentando un investimento formativo eccellente.\"\n\n" +
       "🎯 TONO: Professionale, competente, personalizzato, educativo ma accessibile.\n" +
-      "📏 LUNGHEZZA: 4-6 frasi dense di contenuto, ogni parola deve aggiungere valore.\n\n" +
-      "Scrivi SOLO la spiegazione dettagliata:";
+      "📏 LUNGHEZZA: 6-8 frasi dense di contenuto, ogni parola deve aggiungere valore. Sii molto dettagliato e specifico.\n\n" +
+      "🎯 REQUISITI AGGIUNTIVI:\n" +
+      "- Spiega PERCHÉ ogni prodotto è perfetto per questo specifico profilo\n" +
+      "- Includi benefici educativi e di sviluppo concreti\n" +
+      "- Menziona come i prodotti si integrano tra loro\n" +
+      "- Aggiungi consigli per massimizzare l'esperienza\n" +
+      "- Usa terminologia tecnica appropriata del settore\n\n" +
+      "Scrivi SOLO la spiegazione dettagliata e professionale:";
 
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -295,7 +301,7 @@ async function generateDetailedRationale(answers: Answer[], recommendations: any
         model: OPENAI_MODEL,
         messages: [{ role: "user", content: prompt }],
         temperature: 0.7,
-        max_tokens: 200,
+        max_tokens: 400,
       }),
     });
 

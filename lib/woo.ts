@@ -237,13 +237,33 @@ export function rankProducts(
     score += p.featured ? 1 : 0;                         // prodotti in evidenza
     score += tagMatch ? 3 : 0;                           // match categoria/tag molto importante
     
-    // Bonus per diversi tipi di prodotto
+    // PENALIZZAZIONE FORTE per prezzi eccessivi (prodotti per collezionisti estremi)
+    if (price && price > 1000) score -= 20;  // Penalizza fortemente prodotti > 1000€
+    if (price && price > 500) score -= 15;   // Penalizza fortemente prodotti > 500€
+    if (price && price > 200) score -= 10;   // Penalizza prodotti > 200€
+    if (price && price > 100) score -= 5;    // Penalizza prodotti > 100€
+    if (price && price > 50) score -= 2;     // Penalizza prodotti > 50€
+    
+    // BONUS per prezzi ragionevoli per famiglie
+    if (price && price >= 5 && price <= 30) score += 5;   // Fascia ideale famiglie
+    if (price && price >= 10 && price <= 20) score += 3;  // Fascia ottimale
+    
+    // Bonus per diversi tipi di prodotto (ma solo se prezzo ragionevole)
     const nameLower = name.toLowerCase();
-    if (nameLower.includes('pokemon') || nameLower.includes('pokémon')) score += 1;
-    if (nameLower.includes('magic') || nameLower.includes('yugioh')) score += 1;
-    if (nameLower.includes('lego')) score += 1;
-    if (nameLower.includes('puzzle')) score += 0.5;
-    if (nameLower.includes('gioco') || nameLower.includes('tavolo')) score += 0.5;
+    if (price && price < 80) {
+      if (nameLower.includes('pokemon') || nameLower.includes('pokémon')) score += 2;
+      if (nameLower.includes('magic') || nameLower.includes('yugioh')) score += 1;
+      if (nameLower.includes('lego')) score += 2;
+      if (nameLower.includes('puzzle')) score += 1;
+      if (nameLower.includes('gioco') || nameLower.includes('tavolo')) score += 1;
+      if (nameLower.includes('starter') || nameLower.includes('deck')) score += 2;
+    }
+    
+    // PENALIZZA prodotti chiaramente per collezionisti estremi
+    if (nameLower.includes('display') && price && price > 80) score -= 8;
+    if (nameLower.includes('booster box') && price && price > 60) score -= 5;
+    if (nameLower.includes('case') || nameLower.includes('master set')) score -= 15;
+    if (nameLower.includes('emerald') && price && price > 100) score -= 10;
 
     // Aggiungi varietà per evitare sempre gli stessi risultati
     score = addVariety(score, p.id);

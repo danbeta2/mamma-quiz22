@@ -27,17 +27,29 @@ export default function Results({ rationale, items, onRestart }: { rationale?: s
       <div className="results-grid">
         {items.map(p => (
           <div key={p.id} className="product-card">
-            {p.image && (
+            {p.image ? (
               <img 
                 src={p.image} 
                 alt={p.name} 
                 className="product-image"
                 onError={(e) => {
-                  // Nascondi l'immagine se non si carica
-                  e.currentTarget.style.display = 'none';
+                  // Prova a caricare da un proxy o nascondi
+                  const target = e.currentTarget as HTMLImageElement;
+                  if (!target.src.includes('placeholder')) {
+                    // Usa un placeholder generico
+                    target.src = `https://via.placeholder.com/300x200/f0f0f0/666666?text=${encodeURIComponent(p.name.substring(0, 20))}`;
+                  } else {
+                    // Se anche il placeholder fallisce, nascondi
+                    target.style.display = 'none';
+                  }
                 }}
                 loading="lazy"
+                crossOrigin="anonymous"
               />
+            ) : (
+              <div className="product-image-placeholder">
+                <span>{p.name.substring(0, 30)}...</span>
+              </div>
             )}
             <div className="product-content">
               <h3 className="product-title">{p.name}</h3>
