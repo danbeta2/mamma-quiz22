@@ -345,22 +345,58 @@ export async function POST(req: Request) {
       ? await buildIntentFromDynamicAnswers(answers)
       : await buildIntentFromAnswers(answers); // Fallback per formato vecchio
 
-    // 2) Prodotti da WooCommerce REST (autenticata con ck/cs via server)
-    const products = await searchProducts({
+    // 2) Prodotti da WooCommerce REST con strategia multipla per varietà
+    let allProducts: any[] = [];
+    
+    // Prima ricerca: termini specifici
+    const specificProducts = await searchProducts({
       searchTerms: intent.search_terms || [],
       minPrice: intent.min_price,
       maxPrice: intent.max_price,
-      perPage: 50,
+      perPage: 30,
     });
+    allProducts = [...specificProducts];
+    
+    // Seconda ricerca: termini più generici per varietà
+    if (allProducts.length < 20) {
+      const genericTerms = intent.search_terms?.length > 0 
+        ? [intent.search_terms[0]] // Solo il primo termine
+        : ["giochi", "carte", "tcg"];
+        
+      const genericProducts = await searchProducts({
+        searchTerms: genericTerms,
+        minPrice: intent.min_price,
+        maxPrice: intent.max_price,
+        perPage: 30,
+      });
+      
+      // Aggiungi prodotti che non sono già presenti
+      const existingIds = new Set(allProducts.map(p => p.id));
+      const newProducts = genericProducts.filter(p => !existingIds.has(p.id));
+      allProducts = [...allProducts, ...newProducts];
+    }
+    
+    // Terza ricerca: completamente casuale se ancora pochi prodotti
+    if (allProducts.length < 15) {
+      const randomProducts = await searchProducts({
+        searchTerms: [],
+        perPage: 20,
+      });
+      
+      const existingIds = new Set(allProducts.map(p => p.id));
+      const newProducts = randomProducts.filter(p => !existingIds.has(p.id));
+      allProducts = [...allProducts, ...newProducts];
+    }
 
-    // 3) Ranking locale e top 3
-    const ranked = rankProducts(products, {
+    // 3) Ranking locale con pool più ampio
+    const ranked = rankProducts(allProducts, {
       searchTerms: intent.search_terms || [],
       tags: intent.tags || [],
       minPrice: intent.min_price,
       maxPrice: intent.max_price,
     });
 
+    // Prendi i top 3 ma con più varietà
     const recommendations = ranked.slice(0, 3);
 
     // 4) Genera spiegazione dettagliata del perché sono stati scelti questi prodotti
