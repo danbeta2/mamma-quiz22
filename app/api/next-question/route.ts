@@ -147,12 +147,12 @@ export async function POST(req: Request) {
     const { answers = [], context = "" } = body;
 
     // Se abbiamo abbastanza risposte, completa il quiz
-    if (answers.length >= 4) {
+    if (answers.length >= 7) {
       return NextResponse.json({
         question: "",
         options: [],
         isComplete: true,
-        rationale: "Perfetto! Ho abbastanza informazioni per consigliarti i prodotti migliori."
+        rationale: "Perfetto! Ho raccolto tutte le informazioni necessarie per fornirti consigli personalizzati e dettagliati."
       });
     }
 
@@ -171,50 +171,63 @@ export async function POST(req: Request) {
       const contextText = context || "E-commerce specializzato in giochi, TCG, carte collezionabili, giocattoli, puzzle, action figures";
       const answersText = formatAnswers(answers);
       
-      const prompt = "Sei un esperto consulente di giochi, carte collezionabili (TCG), giocattoli e prodotti per bambini/ragazzi.\n\n" +
+      const prompt = "Sei un consulente esperto specializzato in giochi, TCG, carte collezionabili e giocattoli. Il tuo obiettivo è creare un questionario APPROFONDITO e VERTICALE per fornire consigli ultra-personalizzati.\n\n" +
         "CONTESTO NEGOZIO: " + contextText + "\n\n" +
-        "CRONOLOGIA COMPLETA DOMANDE GIÀ FATTE:\n" + answersText + "\n\n" +
-        "⚠️ REGOLA CRITICA: ANALIZZA OGNI SINGOLA DOMANDA GIÀ FATTA SOPRA. NON RIPETERE MAI NESSUNA DOMANDA SIMILE, NEMMENO CON PAROLE DIVERSE!\n\n" +
-        "TEMI GIÀ TRATTATI DA EVITARE ASSOLUTAMENTE:\n" +
-        (answers.map((a: Answer) => `- ${a.question}`).join('\n') || "- Nessuna domanda ancora fatta") + "\n\n" +
-        "SEQUENZA LOGICA OBBLIGATORIA (salta se già trattato):\n" +
-        "1. ETÀ: \"Per quale fascia d'età stai cercando?\"\n" +
-        "2. CONTESTO: \"Quanti bambini/ragazzi giocheranno insieme?\"\n" +
-        "3. CATEGORIA: \"Che tipo di prodotto ti interessa?\"\n" +
-        "4. OCCASIONE: \"Per quale occasione?\"\n" +
-        "5. BUDGET: \"Qual è il tuo budget indicativo?\"\n" +
-        "6. SPECIFICHE: domande mirate per categoria scelta\n\n" +
-        "CATEGORIE PRODOTTI:\n" +
-        "- Carte collezionabili: Pokémon, Yu-Gi-Oh!, Magic, Dragon Ball Super, One Piece\n" +
-        "- Giochi da tavolo: strategici, cooperativi, party games, famiglia\n" +
-        "- Puzzle e costruzioni: LEGO, Ravensburger, 3D puzzles\n" +
-        "- Action figures: anime, supereroi, gaming\n" +
-        "- Giocattoli educativi: STEM, robotica, esperimenti\n\n" +
-        "DOMANDE SPECIFICHE PER CATEGORIA (solo se categoria già scelta):\n" +
-        "- TCG: marca preferita, livello esperienza, tipo di prodotto (starter/booster/singole)\n" +
-        "- Giochi tavolo: stile (strategico/cooperativo/party), numero giocatori, durata\n" +
-        "- LEGO: tema preferito, dimensione set, età costruttore\n" +
-        "- Action figures: franchise preferito, dimensione, articolazione\n\n" +
-        "ISTRUZIONI OPERATIVE:\n" +
-        "1. LEGGI ATTENTAMENTE tutte le domande già fatte sopra\n" +
-        "2. IDENTIFICA quale tema NON è ancora stato trattato\n" +
-        "3. FAI la prossima domanda logica nella sequenza\n" +
-        "4. Se hai 5+ risposte complete, imposta isComplete: true\n" +
-        "5. OPZIONI: 4-6 scelte chiare e specifiche\n\n" +
-        "ESEMPI DI PROGRESSIONE CORRETTA:\n" +
-        "- Se non hai età → chiedi età\n" +
-        "- Se hai età ma non contesto → chiedi quanti bambini\n" +
-        "- Se hai età+contesto ma non categoria → chiedi tipo prodotto\n" +
-        "- Se hai categoria TCG ma non marca → chiedi marca carte\n" +
-        "- Se hai tutto → isComplete: true\n\n" +
-        "FORMATO RISPOSTA (JSON puro):\n" +
+        "CRONOLOGIA DOMANDE GIÀ FATTE:\n" + answersText + "\n\n" +
+        "🚫 REGOLA ASSOLUTA: NON RIPETERE MAI domande già fatte sopra, nemmeno con parole diverse!\n\n" +
+        "TEMI GIÀ TRATTATI (DA EVITARE):\n" +
+        (answers.map((a: Answer) => `❌ ${a.question}`).join('\n') || "- Nessuna domanda ancora fatta") + "\n\n" +
+        "🎯 STRATEGIA QUESTIONARIO VERTICALE (7-8 domande totali):\n" +
+        "1. DEMOGRAFIA: Età precisa, genere, personalità del bambino\n" +
+        "2. CONTESTO SOCIALE: Fratelli, amici, dinamiche familiari\n" +
+        "3. CATEGORIA PRINCIPALE: Tipo di prodotto con sottocategorie specifiche\n" +
+        "4. ESPERIENZA PREGRESSA: Cosa possiede già, cosa ha funzionato/non funzionato\n" +
+        "5. PREFERENZE SPECIFICHE: Temi, personaggi, meccaniche di gioco preferite\n" +
+        "6. OBIETTIVI EDUCATIVI: Cosa vuoi sviluppare (creatività, logica, socialità)\n" +
+        "7. BUDGET E PRIORITÀ: Range di prezzo e cosa è più importante\n" +
+        "8. DETTAGLI FINALI: Occasione, urgenza, preferenze estetiche\n\n" +
+        "🔍 DOMANDE ULTRA-SPECIFICHE PER CATEGORIA:\n\n" +
+        "📱 TCG/CARTE COLLEZIONABILI:\n" +
+        "- \"Quale aspetto delle carte lo attrae di più?\" [Collezionare, Giocare competitivo, Arte/design, Scambiare con amici]\n" +
+        "- \"Che tipo di mazzi preferisce?\" [Aggressivi/veloci, Strategici/controllo, Combo complesse, Tematici/narrativi]\n" +
+        "- \"Quanto tempo dedica al gioco?\" [30min occasionali, 1-2h weekend, Tornei regolari, Collezionismo quotidiano]\n" +
+        "- \"Che formato di gioco interessa?\" [Standard competitivo, Casual kitchen table, Draft/sealed, Solo collezionismo]\n\n" +
+        "🎲 GIOCHI DA TAVOLO:\n" +
+        "- \"Che tipo di sfida mentale preferisce?\" [Strategia pura, Deduzione/mistero, Gestione risorse, Cooperazione]\n" +
+        "- \"Quale atmosfera di gioco cerca?\" [Competitiva intensa, Rilassata familiare, Narrativa immersiva, Party divertente]\n" +
+        "- \"Quanto tempo ha per giocare?\" [15-30min veloci, 1h medi, 2h+ epici, Variabile]\n" +
+        "- \"Che meccaniche lo coinvolgono?\" [Dadi e fortuna, Carte e combo, Piazzamento tessere, Negoziazione]\n\n" +
+        "🧩 COSTRUZIONI/PUZZLE:\n" +
+        "- \"Che tipo di costruzione preferisce?\" [Seguire istruzioni precise, Creazione libera, Modificare set esistenti, Inventare da zero]\n" +
+        "- \"Quale tema lo appassiona?\" [Veicoli/mezzi, Architetture/città, Personaggi/creature, Meccanismi funzionanti]\n" +
+        "- \"Che livello di dettaglio cerca?\" [Semplice e veloce, Medio dettaglio, Ultra-dettagliato, Modulare/espandibile]\n\n" +
+        "🎭 ACTION FIGURES/COLLECTIBLES:\n" +
+        "- \"Come interagisce con le figure?\" [Gioco narrativo, Esposizione/collezione, Personalizzazione, Stop-motion/foto]\n" +
+        "- \"Che universi narrativi ama?\" [Anime/manga, Supereroi, Sci-fi/fantasy, Horror/dark, Slice of life]\n" +
+        "- \"Che caratteristiche sono prioritarie?\" [Articolazione estrema, Dettagli scultura, Accessori inclusi, Rarità/esclusività]\n\n" +
+        "🧠 GIOCATTOLI EDUCATIVI:\n" +
+        "- \"Quale area vuoi sviluppare?\" [STEM/logica, Creatività artistica, Abilità motorie, Competenze sociali]\n" +
+        "- \"Che approccio all'apprendimento preferisce?\" [Sperimentazione libera, Progetti guidati, Sfide progressive, Gioco collaborativo]\n" +
+        "- \"Quanto supporto adulto è disponibile?\" [Autonomia totale, Supervisione occasionale, Collaborazione attiva, Guida costante]\n\n" +
+        "💡 ESEMPI DI DOMANDE VERTICALI PERFETTE:\n" +
+        "- \"Quando gioca con le carte, cosa lo entusiasma di più: vincere partite, scoprire carte rare, o creare strategie elaborate?\"\n" +
+        "- \"Nei giochi da tavolo, preferisce essere il leader che guida la strategia o il tattico che trova soluzioni creative?\"\n" +
+        "- \"Con i LEGO, tende a seguire le istruzioni alla lettera o a modificare e personalizzare i set?\"\n" +
+        "- \"Quale di questi aspetti è più importante: che il gioco duri a lungo nel tempo, che sia facile da imparare, o che offra sempre nuove sfide?\"\n\n" +
+        "📋 ISTRUZIONI OPERATIVE:\n" +
+        "1. ANALIZZA le risposte precedenti per capire il profilo\n" +
+        "2. IDENTIFICA l'area che necessita maggiore approfondimento\n" +
+        "3. CREA una domanda SPECIFICA e VERTICALE per quella area\n" +
+        "4. EVITA domande generiche - vai sempre nel dettaglio\n" +
+        "5. OPZIONI: 4-5 scelte molto specifiche e distintive\n" +
+        "6. Se hai 7+ risposte dettagliate, completa il quiz\n\n" +
+        "FORMATO RISPOSTA (JSON):\n" +
         "{\n" +
-        "  \"question\": \"Domanda NON ancora fatta\",\n" +
-        "  \"options\": [\"Opzione 1\", \"Opzione 2\", \"Opzione 3\", \"Opzione 4\"],\n" +
-        "  \"isComplete\": false,\n" +
-        "  \"rationale\": \"Solo se isComplete=true\"\n" +
+        "  \"question\": \"Domanda specifica e verticale MAI fatta prima\",\n" +
+        "  \"options\": [\"Opzione molto specifica 1\", \"Opzione molto specifica 2\", \"Opzione molto specifica 3\", \"Opzione molto specifica 4\"],\n" +
+        "  \"isComplete\": false\n" +
         "}\n\n" +
-        "⚠️ VERIFICA FINALE: La domanda che stai per fare è DIVERSA da tutte quelle già fatte sopra? Se no, scegli un altro tema!";
+        "🎯 OBIETTIVO: Ogni domanda deve rivelare un aspetto UNICO della personalità e preferenze del cliente per consigli ULTRA-PERSONALIZZATI!";
 
       console.log("🚀 Making OpenAI API call...");
       const res = await fetch("https://api.openai.com/v1/chat/completions", {

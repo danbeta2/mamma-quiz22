@@ -263,20 +263,27 @@ async function generateDetailedRationale(answers: Answer[], recommendations: any
       `${i + 1}. ${p.name} - ${p.price ? p.price.toFixed(2) + '€' : 'Prezzo da verificare'}\n   Motivi: ${p.reasons.join(', ')}`
     ).join('\n\n');
 
-    const prompt = "Sei un consulente esperto di giochi, TCG e giocattoli. Hai appena selezionato dei prodotti perfetti per un cliente in base alle sue risposte al questionario.\n\n" +
-      "RISPOSTE DEL CLIENTE:\n" + answersText + "\n\n" +
-      "PRODOTTI SELEZIONATI:\n" + productsText + "\n\n" +
-      "COMPITO: Scrivi una spiegazione personalizzata e convincente (2-3 frasi) che spieghi ESATTAMENTE perché hai scelto questi prodotti specifici per questo cliente.\n\n" +
-      "REGOLE:\n" +
-      "1. Menziona elementi specifici dalle risposte del cliente\n" +
-      "2. Collega le caratteristiche dei prodotti alle sue esigenze\n" +
-      "3. Usa un tono professionale ma amichevole\n" +
-      "4. Sii specifico sui benefici di ogni prodotto\n" +
-      "5. Massimo 3 frasi, diretto al punto\n\n" +
-      "ESEMPI DI SPIEGAZIONI OTTIME:\n" +
-      "- \"Considerando che stai cercando per un bambino di 8 anni interessato alle carte Pokémon, ho selezionato uno Starter Deck perfetto per iniziare e un Booster Pack per espandere la collezione. Il tuo budget di 30€ è ideale per questi prodotti che garantiscono ore di divertimento.\"\n" +
-      "- \"Dato che hai indicato interesse per giochi da tavolo strategici per 2-4 giocatori, ho scelto Catan e Ticket to Ride che sono perfetti per la famiglia. Entrambi offrono la giusta complessità per ragazzi di 12+ anni e rientrano nel tuo budget.\"\n\n" +
-      "Scrivi SOLO la spiegazione, nessun altro testo:";
+    const prompt = "Sei un consulente esperto specializzato in giochi, TCG e giocattoli con 15+ anni di esperienza. Hai appena completato un'analisi approfondita del profilo di un cliente e selezionato prodotti ultra-personalizzati.\n\n" +
+      "PROFILO COMPLETO DEL CLIENTE:\n" + answersText + "\n\n" +
+      "PRODOTTI SELEZIONATI CON ANALISI:\n" + productsText + "\n\n" +
+      "🎯 COMPITO: Scrivi una spiegazione DETTAGLIATA e MOTIVATA (4-6 frasi) che dimostri la tua expertise e giustifichi ogni scelta con precisione scientifica.\n\n" +
+      "📋 STRUTTURA RICHIESTA:\n" +
+      "1. ANALISI PROFILO: Riassumi il profilo psicologico/preferenze del cliente\n" +
+      "2. LOGICA SELEZIONE: Spiega il ragionamento dietro ogni prodotto scelto\n" +
+      "3. BENEFICI SPECIFICI: Dettagli sui vantaggi per questo cliente specifico\n" +
+      "4. CRESCITA FUTURA: Come questi prodotti supporteranno lo sviluppo\n\n" +
+      "🔍 ELEMENTI DA INCLUDERE SEMPRE:\n" +
+      "- Riferimenti specifici alle risposte del questionario\n" +
+      "- Connessioni tra personalità e caratteristiche prodotto\n" +
+      "- Benefici educativi/sviluppo competenze\n" +
+      "- Valore a lungo termine dell'investimento\n" +
+      "- Compatibilità con contesto familiare/sociale\n\n" +
+      "💡 ESEMPI DI SPIEGAZIONI PROFESSIONALI:\n\n" +
+      "ESEMPIO TCG: \"Basandomi sul profilo emerso - bambino di 9 anni con forte inclinazione strategica e desiderio di collezionismo - ho selezionato uno Starter Deck Pokémon che offre meccaniche bilanciate per sviluppare il pensiero tattico, abbinato a Booster Pack per soddisfare l'aspetto collezionistico. Questi prodotti sono ideali perché combinano l'apprendimento di regole complesse (sviluppo cognitivo) con la gratificazione immediata delle carte rare (motivazione intrinseca). Il budget di 35€ è ottimizzato per garantire un'esperienza completa senza sovraccarico, permettendo una progressione naturale verso formati più avanzati.\"\n\n" +
+      "ESEMPIO GIOCHI TAVOLO: \"Considerando il profilo di una famiglia con bambini 8-12 anni che cerca esperienze collaborative e educative, ho scelto Ticket to Ride per sviluppare pianificazione strategica e geografia, e Azul per affinare il riconoscimento di pattern e l'estetica. Entrambi offrono meccaniche accessibili ma profonde, perfette per creare momenti di qualità familiare mentre stimolano competenze STEM. La combinazione garantisce varietà di esperienza (geografica vs artistica) e longevità di gioco, rappresentando un investimento formativo eccellente.\"\n\n" +
+      "🎯 TONO: Professionale, competente, personalizzato, educativo ma accessibile.\n" +
+      "📏 LUNGHEZZA: 4-6 frasi dense di contenuto, ogni parola deve aggiungere valore.\n\n" +
+      "Scrivi SOLO la spiegazione dettagliata:";
 
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
