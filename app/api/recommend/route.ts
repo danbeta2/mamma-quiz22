@@ -412,7 +412,7 @@ export async function POST(req: Request) {
       rationale: detailedRationale,
       recommendations,
       meta: {
-        total_found: products.length,
+        total_found: allProducts.length,
         searched_terms: intent.search_terms || [],
         price_range: { min: intent.min_price ?? null, max: intent.max_price ?? null },
       },
